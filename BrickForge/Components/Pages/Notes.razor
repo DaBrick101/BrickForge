@@ -1,0 +1,62 @@
+﻿@page "/notes"
+@using BrickForge.Models
+@using BrickForge.Services
+@inject NoteService NoteService
+
+<h3>Notizen</h3>
+
+@if (notes == null)
+{
+    <p>Lade Notizen...</p>
+}
+else if (notes.Count == 0)
+{
+    <p>Keine Notizen vorhanden.</p>
+}
+else
+{
+    <ul>
+        @foreach (var note in notes)
+        {
+            <li>
+                <strong>@note.Title</strong> <br />
+                @note.Content <br />
+                <button @onclick="() => DeleteNote(note.Id)">🗑 Löschen</button>
+            </li>
+        }
+    </ul>
+}
+
+<h4>Neue Notiz hinzufügen</h4>
+<input type="text" @bind="newNoteTitle" placeholder="Titel" />
+<textarea @bind="newNoteContent" placeholder="Inhalt"></textarea>
+<button @onclick="AddNote">Speichern</button>
+
+@code {
+    private List<Note> notes;
+    private string newNoteTitle;
+    private string newNoteContent;
+
+    protected override async Task OnInitializedAsync()
+    {
+        notes = await NoteService.GetNotesAsync();
+    }
+
+    private async Task AddNote()
+    {
+        if (!string.IsNullOrWhiteSpace(newNoteTitle) && !string.IsNullOrWhiteSpace(newNoteContent))
+        {
+            var newNote = new Note { Title = newNoteTitle, Content = newNoteContent };
+            await NoteService.CreateNoteAsync(newNote);
+            notes = await NoteService.GetNotesAsync();
+            newNoteTitle = "";
+            newNoteContent = "";
+        }
+    }
+
+    private async Task DeleteNote(int id)
+    {
+        await NoteService.DeleteNoteAsync(id);
+        notes = await NoteService.GetNotesAsync();
+    }
+}
