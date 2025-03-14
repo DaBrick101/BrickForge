@@ -39,24 +39,53 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        notes = await NoteService.GetNotesAsync();
+        try
+        {
+            notes = await NoteService.GetNotesAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading notes: {ex.Message}");
+        }
     }
 
     private async Task AddNote()
     {
-        if (!string.IsNullOrWhiteSpace(newNoteTitle) && !string.IsNullOrWhiteSpace(newNoteContent))
+        Console.WriteLine("AddNote method called");
+        try
         {
-            var newNote = new Note { Title = newNoteTitle, Content = newNoteContent };
-            await NoteService.CreateNoteAsync(newNote);
-            notes = await NoteService.GetNotesAsync();
-            newNoteTitle = "";
-            newNoteContent = "";
+            if (!string.IsNullOrWhiteSpace(newNoteTitle) && !string.IsNullOrWhiteSpace(newNoteContent))
+            {
+                Console.WriteLine($"Creating new note with title: {newNoteTitle}");
+                var newNote = new Note { Title = newNoteTitle, Content = newNoteContent };
+                await NoteService.CreateNoteAsync(newNote);
+                notes = await NoteService.GetNotesAsync();
+                newNoteTitle = "";
+                newNoteContent = "";
+                StateHasChanged(); // Ensure the UI is updated
+            }
+            else
+            {
+                Console.WriteLine("Title or Content is empty");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error adding note: {ex.Message}");
         }
     }
 
     private async Task DeleteNote(int id)
     {
-        await NoteService.DeleteNoteAsync(id);
-        notes = await NoteService.GetNotesAsync();
+        try
+        {
+            await NoteService.DeleteNoteAsync(id);
+            notes = await NoteService.GetNotesAsync();
+            StateHasChanged(); // Ensure the UI is updated
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting note: {ex.Message}");
+        }
     }
 }
